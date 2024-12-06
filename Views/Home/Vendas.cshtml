@@ -1,0 +1,162 @@
+﻿@page
+@model EasyStore.Models.Venda
+@{
+    Layout = null;
+    <link rel="stylesheet" href="~/css/vendas.css" />
+}
+
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vendedor</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <header class="navegation">
+        <div class="navegation_logo">
+            <img src="logo.png" alt="Logo EasyStore">
+            <span>EasyStore</span>
+        </div>
+    </header>
+
+    <main class="sales">
+        <!-- Carrinho -->
+        <div class="sales_box">
+            <table class="sales_box_table">
+                <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th>Qtd.</th>
+                        <th>Valor</th>
+                        <th>Remover</th>
+                    </tr>
+                </thead>
+                <tbody id="cart-items">
+                    <!-- Produtos adicionados dinamicamente -->
+                </tbody>
+            </table>
+            <div class="sales_box_value">
+                <h1>Total</h1>
+                <p id="total-value">R$ 0,00</p>
+            </div>
+        </div>
+
+        <!-- Adicionar Produto e Pagamento -->
+        <div class="product">
+            <div class="product_add">
+                <form id="add-product-form" method="post" action="/Home/AdicionarProduto">
+                    <label for="codigo">Código do Produto</label>
+                    <input type="text" id="codigo" name="codigo" required>
+                    <label for="quantidade">Quantidade</label>
+                    <input type="number" id="quantidade" name="quantidade" value="1" required>
+                    <button type="submit" class="product_add_button" onclick="addProduct()">Adicionar Produto</button>
+                </form>
+            </div>
+
+            <div class="product_payment">
+                <form id="payment-form" method="post" action="/Home/FinalizarCompra">
+                    <label for="payment">Método de Pagamento</label>
+                    <select id="payment" name="payment" required>
+                        <option value="credit">Cartão de Crédito</option>
+                        <option value="debit">Cartão de Débito</option>
+                        <option value="money">Dinheiro</option>
+                        <option value="pix">Pix</option>
+                    </select>
+                    <button type="submit" id="finalize" onclick="finalizePurchase()">Finalizar Compra</button>
+                </form>
+            </div>
+        </div>
+    </main>
+</body>
+<script>
+    let total = 0;
+    let productsInCart = [];
+
+    function addProduct() {
+        const codigo = document.getElementById("codigo").value;
+        const quantidade = document.getElementById("quantidade").value;
+
+        if (!codigo || !quantidade) {
+            alert("Preencha todos os campos!");
+            return;
+        }
+
+        fetch("/Vendas/AddProduto", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ Codigo: codigo, Quantidade: quantidade }) // Dados enviados
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.mensagem) {
+                    alert(data.mensagem); // Se houver erro, mostra a mensagem
+                    return;
+                }
+
+                // Adiciona o produto na lista de carrinho
+                const itemRow = `
+                    <tr>
+                        <td>${data.nome}</td>
+                        <td>${quantidade}</td>
+                        <td>R$ ${data.valor.toFixed(2)}</td>
+                        <td>
+                            <button onclick="removeProduct(this)">Remover</button>
+                        </td>
+                    </tr>`;
+                document.getElementById("cart-items").insertAdjacentHTML("beforeend", itemRow);
+
+                // Adiciona o produto à lista de compras
+                productsInCart.push({ nome: data.nome, quantidade, valor: data.valor });
+
+                total += data.valor;
+                document.getElementById("total-value").textContent = `R$ ${total.toFixed(2)}`;
+            })
+            .catch(error => alert("Erro ao buscar produto: " + error));
+    }
+
+    function removeProduct(button) {
+        const row = button.parentElement.parentElement;
+        const productName = row.cells[0].textContent;
+        const quantity = parseInt(row.cells[1].textContent);
+        const price = parseFloat(row.cells[2].textContent.replace("R$", ""));
+
+        // Atualiza o total
+        total -= price;
+        document.getElementById("total-value").textContent = `R$ ${total.toFixed(2)}`;
+
+        // Remove o produto da lista de compras
+        productsInCart = productsInCart.filter(product => product.nome !== productName || product.quantidade !== quantity);
+
+        // Remove a linha da tabela
+        row.remove();
+    }
+
+    function finalizePurchase() {
+        const paymentMethod = document.getElementById("payment").value;
+
+        // Envia os dados para o backend para registrar a venda
+        fetch("/Vendas/FinalizePurchase", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ produtos: productsInCart, total: total, metodoPagamento: paymentMethod })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.sucesso) {
+                    alert(`Compra finalizada! Total: R$ ${total.toFixed(2)}`);
+                    document.getElementById("cart-items").innerHTML = "";
+                    document.getElementById("total-value").textContent = "R$ 0,00";
+                    total = 0;
+                    productsInCart = []; // Limpa o carrinho
+                } else {
+                    alert("Erro ao finalizar compra: " + data.mensagem);
+                }
+            })
+            .catch(error => alert("Erro ao finalizar compra: " + error));
+    }
+</script>
+</html>

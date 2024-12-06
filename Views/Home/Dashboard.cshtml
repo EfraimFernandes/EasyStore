@@ -1,0 +1,90 @@
+﻿@page
+@model EasyStore.Views.Dashboard.IndexModel
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="@Url.Content("~/css/dashboard.css")">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="content">
+        <div class="header">
+            <h1>Dashboard</h1>
+        </div>
+
+        <div class="charts">
+            <div class="chart">
+                <h3>Vendas dos Últimos 14 Dias</h3>
+                <canvas id="vendasChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Função para buscar os dados das vendas do backend
+        async function fetchVendas() {
+            try {
+                const response = await fetch('@Url.Action("GetVendas", "Dashboard")');
+                const vendas = await response.json();
+                renderChart(vendas);
+            } catch (error) {
+                console.error("Erro ao buscar os dados das vendas:", error);
+            }
+        }
+
+        // Função para renderizar o gráfico
+        function renderChart(vendas) {
+            const ctx = document.getElementById('vendasChart').getContext('2d');
+            const labels = vendas.map(v => v.Data);
+            const data = vendas.map(v => v.TotalVendas);
+
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Vendas (R$)',
+                        data: data,
+                        borderColor: 'blue',
+                        backgroundColor: 'rgba(0, 0, 255, 0.2)',
+                        fill: true,
+                        tension: 0.4, // Linha suavizada
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Dias'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Vendas (R$)'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Chama a função para buscar os dados e renderizar o gráfico
+        fetchVendas();
+    </script>
+</body>
+</html>

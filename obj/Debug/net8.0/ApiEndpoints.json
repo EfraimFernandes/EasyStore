@@ -1,0 +1,34 @@
+[
+  {
+    "ContainingType": "EasyStore.Controllers.VendasController",
+    "Method": "AddProduto",
+    "RelativePath": "api/Vendas/add-produto",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "EasyStore.Controllers.ProdutoRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "EasyStore.Controllers.VendasController",
+    "Method": "FinalizePurchase",
+    "RelativePath": "api/Vendas/finalizar-compra",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "EasyStore.Controllers.FinalizePurchaseRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  }
+]

@@ -13,7 +13,7 @@ namespace EasyStore.Controllers
             _logger = logger;
         }
 
-        public IActionResult Index()
+        public IActionResult Landing()
         {
             return View();
         }
@@ -21,6 +21,26 @@ namespace EasyStore.Controllers
         public IActionResult Privacy()
         {
             return View();
+        }
+
+        public IActionResult Login()
+        {
+            return View(); // Retorna a view de Login
+        }
+
+        public IActionResult Dashboard()
+        {
+            return View(); // Retorna a view do Dashboard
+        }
+
+        public IActionResult Estoque()
+        {
+            return View(); // Retorna a view de Estoque
+        }
+
+        public IActionResult Vendas()
+        {
+            return View(); // Retorna a view de Vendas
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
